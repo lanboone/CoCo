@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/like"
+        android:icon="@drawable/ic_action_user"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="我喜欢的"/>
+    <item 
+        android:id="@+id/exit"
+        android:orderInCategory="200"
+        android:showAsAction="never"
+        android:title="退出"/>
+
+</menu>

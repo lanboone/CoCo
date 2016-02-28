@@ -1,0 +1,145 @@
+package com.mymusic.cocomusic;
+
+import java.util.ArrayList;
+
+import com.mymusic.cocomusic.util.MediaUtils;
+import com.mymusic.cocomusic.vo.Mp3Info;
+
+import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+public class PlayActivity extends BaseActivity implements OnClickListener{
+
+	private TextView textView_end_time,textView_title,textView_start_time;
+	private ImageView imageView1_album,imageButton1_play_mode,imageButton2_play_pause,imageButton3_previous,imageButton1_next;
+	private SeekBar seekBar1;
+	private ArrayList<Mp3Info> mp3Infos;
+	private static final int UPDATE_TIME = 0;//更新播放时间的标记
+	private boolean isPause= false;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_music_play);
+		textView_end_time = (TextView) findViewById(R.id.textView_end_time);
+		textView_title = (TextView) findViewById(R.id.textView_title);
+		textView_start_time = (TextView) findViewById(R.id.textView_start_time);
+		imageView1_album = (ImageView) findViewById(R.id.imageView1_album);
+		imageButton1_play_mode = (ImageView) findViewById(R.id.imageButton1_play_mode);
+		imageButton2_play_pause = (ImageView) findViewById(R.id.imageButton2_play_pause);
+		imageButton3_previous = (ImageView) findViewById(R.id.imageButton3_previous);
+		imageButton1_next = (ImageView) findViewById(R.id.imageButton1_next);
+		seekBar1 = (SeekBar) findViewById(R.id.seekBar1);
+		imageButton2_play_pause.setOnClickListener(this);
+		imageButton1_play_mode.setOnClickListener(this);
+		imageButton1_next.setOnClickListener(this);
+		imageButton3_previous.setOnClickListener(this);
+		
+		
+		mp3Infos = MediaUtils.getMp3Infos(this);
+		
+		myHandler = new MyHandler(this);
+		isPause = getIntent().getBooleanExtra("isPause", false);
+		
+	}
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		bindPlayService();
+	}
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		unbindPlayService();
+	}
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+	
+	}
+
+	private static MyHandler myHandler;
+	static class MyHandler extends Handler{
+		
+		private PlayActivity playActivity;
+		public MyHandler(PlayActivity playActivity){
+			this.playActivity = playActivity;//可以使用软引用
+		}
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			if(playActivity !=null){
+				switch (msg.what) {
+				case UPDATE_TIME:
+					playActivity.textView_start_time.setText(MediaUtils.formatTime(msg.arg1));
+					break;
+
+				default:
+					break;
+				}
+			}
+		}
+	}
+	@Override
+	public void publish(int progress) {
+		//textView_start_time.setText(MediaUtils.formatTime(progress));
+		Message msg = myHandler.obtainMessage(UPDATE_TIME);
+		msg.arg1 = progress;
+		myHandler.sendMessage(msg);
+		seekBar1.setProgress(progress);
+		
+	}
+
+	@Override
+	public void change(int position) {
+
+		  Mp3Info mp3Info = mp3Infos.get(position);
+		  textView_title.setText(mp3Info.getTitle());
+		  Bitmap albumBitmap = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
+		  imageView1_album.setImageBitmap(albumBitmap);
+		  textView_end_time.setText(MediaUtils.formatTime(mp3Info.getDuration()));
+		  seekBar1.setProgress(0);
+		  seekBar1.setMax((int) mp3Info.getDuration());
+		  if(playService.isPlaying()){
+				imageButton2_play_pause.setImageResource(R.mipmap.pause);
+			}else {
+				imageButton2_play_pause.setImageResource(R.mipmap.play);
+			}
+		}
+//	}
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.imageButton2_play_pause:
+			if(playService.isPlaying()){
+				imageButton2_play_pause.setImageResource(R.mipmap.play);
+				playService.pause();
+			}else{
+				if(playService.isPause()){
+					imageButton2_play_pause.setImageResource(R.mipmap.player_btn_pause_normal);
+					playService.start();
+				}else{
+					playService.play(0);
+				}
+				
+			}
+			
+			break;
+
+		default:
+			break;
+		}
+	}
+
+}

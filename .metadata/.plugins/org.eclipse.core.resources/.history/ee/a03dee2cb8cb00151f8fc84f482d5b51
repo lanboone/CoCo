@@ -1,0 +1,75 @@
+package com.mymusic.cocomusic;
+
+import java.util.ArrayList;
+
+import com.mymusic.cocomusic.util.MediaUtils;
+import com.mymusic.cocomusic.vo.Mp3Info;
+
+import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+public class PlayActivity extends BaseActivity implements OnClickListener{
+
+	private TextView textView_end_time,textView_title,textView_start_time;
+	private ImageView imageView1_album,imageButton1_play_mode,imageButton2_play_pause,imageButton3_previous,imageButton1_next;
+	private SeekBar seekBar1;
+	private ArrayList<Mp3Info> mp3Infos;
+	private int position;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_music_play);
+		textView_end_time = (TextView) findViewById(R.id.textView_end_time);
+		textView_title = (TextView) findViewById(R.id.textView_title);
+		textView_start_time = (TextView) findViewById(R.id.textView_start_time);
+		imageView1_album = (ImageView) findViewById(R.id.imageView1_album);
+		imageButton1_play_mode = (ImageView) findViewById(R.id.imageButton1_play_mode);
+		imageButton2_play_pause = (ImageView) findViewById(R.id.imageButton2_play_pause);
+		imageButton3_previous = (ImageView) findViewById(R.id.imageButton3_previous);
+		imageButton1_next = (ImageView) findViewById(R.id.imageButton1_next);
+		seekBar1 = (SeekBar) findViewById(R.id.seekBar1);
+		mp3Infos = MediaUtils.getMp3Infos(this);
+		bindPlayService();
+//		position = getIntent().getIntExtra("position", 0);
+//		change(position);
+	}
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		unbindPlayService();
+	}
+
+	@Override
+	public void publish(int progress) {
+		//textView_start_time.setText(MediaUtils.formatTime(progress));
+		seekBar1.setProgress(progress);
+		
+	}
+
+	@Override
+	public void change(int position) {
+		if(this.playService.isPlaying()){
+		  Mp3Info mp3Info = mp3Infos.get(position);
+		  textView_title.setText(mp3Info.getTitle());
+		  Bitmap albumBitmap = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, true);
+		  imageView1_album.setImageBitmap(albumBitmap);
+		  textView_end_time.setText(MediaUtils.formatTime(mp3Info.getDuration()));
+		  imageButton2_play_pause.setImageResource(R.mipmap.player_btn_pause_normal);
+		  seekBar1.setProgress(0);
+		  seekBar1.setMax((int) mp3Info.getDuration());
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+		
+	}
+
+}

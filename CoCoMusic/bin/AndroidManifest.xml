@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.mymusic.cocomusic"
+    android:versionCode="1"
+    android:versionName="1.0" >
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="18" />
+
+    <application
+        android:name="com.mymusic.cocomusic.CoCoMusicApp"
+        android:icon="@mipmap/app_logo"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme"
+        android:allowBackup="true" >
+        <activity
+            android:name="com.mymusic.cocomusic.FullscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="CoCo音乐"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.mymusic.cocomusic.MainActivity"
+            android:icon="@mipmap/app_logo2"
+            android:label="CoCo音乐"></activity>
+        <activity android:name="com.mymusic.cocomusic.PlayActivity"
+            android:icon="@mipmap/app_logo2"
+            android:label="CoCo音乐"></activity>
+        <activity android:name="com.mymusic.cocomusic.MyLikeMusicListActivity"
+                  android:label="我喜欢的"                              
+                  ></activity> 
+                 
+            <service android:name="com.mymusic.cocomusic.PlayService"
+                 android:enabled="true"
+                 android:exported="true"
+                 ></service>
+    </application>
+
+</manifest>

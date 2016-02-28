@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy element &apos;libs&apos; to &apos;library&apos;&#x0D;&#x0A;- Original project: &apos;android-support-v7-appcompat&apos;&#x0D;&#x0A;- Destination element: &apos;library&apos;&#x0D;&#x0A;- Original element: &apos;libs&apos;" description="Copy folder" destination="=library" element1="libs" files="0" flags="589830" folders="1" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1454808728830" units="0" version="1.0"/>
+</session>

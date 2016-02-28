@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">PagerSlidingTabStrip</string>
+    <string name="action_contact">Contact</string>
+    <string name="random">随机播放</string>
+    <string name="order">顺序播放</string>
+    <string name="single">单曲循环</string>
+
+</resources>
