@@ -8,16 +8,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import com.lidroid.xutils.bitmap.download.Downloader;
 import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 import com.mymusic.cocomusic.util.Constent;
 import com.mymusic.cocomusic.util.MediaUtils;
-import com.mymusic.cocomusic.util.SearchMusicUtils;
 import com.mymusic.cocomusic.vo.Mp3Info;
-import com.mymusic.cocomusic.vo.SearchResult;
-
 import douzi.android.view.DefaultLrcBuilder;
 import douzi.android.view.ILrcBuilder;
 import douzi.android.view.ILrcView;
@@ -25,8 +23,15 @@ import douzi.android.view.LrcRow;
 import douzi.android.view.LrcView;
 
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Environment;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.os.Message;
 
@@ -37,7 +42,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver.OnScrollChangedListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -47,7 +54,12 @@ import android.widget.Toast;
 public class PlayActivity extends BaseActivity implements OnClickListener,OnSeekBarChangeListener,OnPageChangeListener{
 
 	private TextView textView_end_time,textView_title,textView_start_time;
-	private ImageView imageView1_album,imageButton1_play_mode,imageButton2_play_pause,imageButton3_previous,imageButton1_next,imageView_favorite;
+	static ImageView imageView1_album;
+	private ImageView imageButton1_play_mode;
+	private ImageView imageButton2_play_pause;
+	private ImageView imageButton3_previous;
+	private ImageView imageButton1_next;
+	private ImageView imageView_favorite;
 	private SeekBar seekBar1;
 //	private ArrayList<Mp3Info> mp3Infos;
 	private static final int UPDATE_TIME = 0;//更新播放时间的标记
@@ -56,7 +68,8 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 	private ViewPager viewPager;
 	private LrcView lrcView;
 	private ArrayList<View> views = new ArrayList<View>();
-
+	private Animation animation;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -67,6 +80,7 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 		textView_title = (TextView)findViewById(R.id.textView_title);
 		textView_start_time = (TextView) findViewById(R.id.textView_start_time);
 		imageView1_album = (ImageView) findViewById(R.id.imageView1_album);
+		
 		imageButton1_play_mode = (ImageView) findViewById(R.id.imageButton1_play_mode);
 		imageButton2_play_pause = (ImageView) findViewById(R.id.imageButton2_play_pause);
 		imageButton3_previous = (ImageView) findViewById(R.id.imageButton3_previous);
@@ -83,12 +97,56 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 		imageView_favorite.setOnClickListener(this);
 		app = (CoCoMusicApp) getApplication();
 
-//		mp3Infos = MediaUtils.getMp3Infos(this);
+		
 		
 		myHandler = new MyHandler(this);
 		
 	}
+	public Bitmap makeRoundCorner(Bitmap bitmap)
+	  {
+		Log.d("dodo", "lala");
+	    int width = bitmap.getWidth();
+	    int height = bitmap.getHeight();
+	    int left = 0, top = 0, right = width, bottom = height;
+	    float roundPx = height/2;
+	    if (width > height) {
+	      left = (width - height)/2;
+	      top = 0;
+	      right = left + height;
+	      bottom = height;
+	    } else if (height > width) {
+	      left = 0;
+	      top = (height - width)/2;
+	      right = width;
+	      bottom = top + width;
+	      roundPx = width/2;
+	    }
+//	    ZLog.i(TAG, "ps:"+ left +", "+ top +", "+ right +", "+ bottom);
+
+	    Bitmap output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+	    Canvas canvas = new Canvas(output);
+	    int color = 0xff424242;
+	    Paint paint = new Paint();
+	    Rect rect = new Rect(left, top, right, bottom);
+	    RectF rectF = new RectF(rect);
+
+	    paint.setAntiAlias(true);
+	    canvas.drawARGB(0, 0, 0, 0);
+	    paint.setColor(color);
+	    canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+	    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+	    canvas.drawBitmap(bitmap, rect, rect, paint);
+	    return output;
+	  }
 	private void initViewPager(){
+		//动画初始化
+				animation = AnimationUtils.loadAnimation(this, R.anim.tip);
+				LinearInterpolator li = new LinearInterpolator();
+			    animation.setInterpolator(li);
+			    
+			    
+			    
+			    
 		View album_image_layout = getLayoutInflater().inflate(R.layout.album_image_layout, null);
 		imageView1_album = (ImageView) album_image_layout.findViewById(R.id.imageView1_album);
 		textView_title = (TextView) album_image_layout.findViewById(R.id.textView_title);
@@ -120,7 +178,6 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 			int len = -1;
 			while((len = in.read(chars))!=-1){
 				buf.append(chars,0,len);
-				
 			}
 			in.close();
 			
@@ -138,6 +195,7 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 	protected void onResume() {
 		super.onResume();
 		bindPlayService();
+		
 	}
 	@Override
 	protected void onPause() {
@@ -175,22 +233,33 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 		myHandler.sendMessage(msg);
 		seekBar1.setProgress(progress);
 		
+		//-------------------------------------------
+		
+		
 	}
 
+
+	
 	@Override
 	public void change(int position) {
 
 		  Mp3Info mp3Info = playService.mp3Infos.get(position);
 		  textView_title.setText(mp3Info.getTitle());
 		  Bitmap albumBitmap = MediaUtils.getArtwork(this, mp3Info.getId(), mp3Info.getAlbumId(), true, false);
-		  imageView1_album.setImageBitmap(albumBitmap);
+		  
+//		  Bitmap bmp= ((BitmapDrawable)imageView1_album.getDrawable()).getBitmap();//将图片转化圆形
+		  imageView1_album.setImageBitmap(makeRoundCorner(albumBitmap));
+		  
+//		  imageView1_album.setImageBitmap(albumBitmap);
 		  textView_end_time.setText(MediaUtils.formatTime(mp3Info.getDuration()));
 		  seekBar1.setProgress(0);
 		  seekBar1.setMax((int) mp3Info.getDuration());
 		  if(playService.isPlaying()){
 				imageButton2_play_pause.setImageResource(R.mipmap.zanting);
+				imageView1_album.startAnimation(animation);
 			}else {
 				imageButton2_play_pause.setImageResource(R.mipmap.bofang);
+				imageView1_album.clearAnimation();
 			}
 		  switch (playService.getPlay_mode()) {
 		       case PlayService.ORDER_PLAY:
@@ -220,6 +289,11 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 		} catch (DbException e) {
 			e.printStackTrace();
 		}
+		  
+		  
+		  
+		  
+		  
 		//歌词
 		String songName = mp3Info.getTitle();
 		String lrcPath = Environment.getExternalStorageDirectory() +Constent.DIR_LRC +"/"+songName+".lrc";
@@ -267,8 +341,11 @@ public class PlayActivity extends BaseActivity implements OnClickListener,OnSeek
 		case R.id.imageButton2_play_pause:{
 			if(playService.isPlaying()){
 				imageButton2_play_pause.setImageResource(R.mipmap.bofang);
+				imageView1_album.clearAnimation();
 				playService.pause();
 			}else{
+				imageView1_album.startAnimation(animation);
+				
 				if(playService.isPause()){
 					imageButton2_play_pause.setImageResource(R.mipmap.zanting);
 					playService.start();

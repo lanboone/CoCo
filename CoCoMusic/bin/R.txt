@@ -4,6 +4,7 @@ int anim abc_slide_in_bottom 0x7f050002
 int anim abc_slide_in_top 0x7f050003
 int anim abc_slide_out_bottom 0x7f050004
 int anim abc_slide_out_top 0x7f050005
+int anim tip 0x7f050006
 int attr actionBarDivider 0x7f01000b
 int attr actionBarItemBackground 0x7f01000c
 int attr actionBarSize 0x7f01000a

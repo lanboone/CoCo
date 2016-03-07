@@ -79,6 +79,7 @@ public class MyMusicListFragment extends Fragment implements OnItemClickListener
 		
 		//绑定播放服务
 		mainActivity.bindPlayService();
+		Log.d("dododo", "绑定了");
 
 	}
 	@Override
@@ -160,7 +161,6 @@ public class MyMusicListFragment extends Fragment implements OnItemClickListener
 			if(mainActivity.playService.isPlaying()){
 				iv_play_pause.setImageResource(R.mipmap.bofang);
 				mainActivity.playService.pause();
-
 			}else{
 				if(mainActivity.playService.isPause()){
 					iv_play_pause.setImageResource(R.mipmap.zanting);
@@ -177,6 +177,7 @@ public class MyMusicListFragment extends Fragment implements OnItemClickListener
 		case R.id.imageView_album:
 			Intent intent = new Intent(mainActivity,PlayActivity.class);
 //			intent.putExtra("isPause", isPause);
+			
 			startActivity(intent);
 			break;
 			default:

@@ -220,7 +220,7 @@ public class MainActivity extends BaseActivity {
 				}
 				return netMusicListFragment;
 			}
-			return MyMusicListFragment.newInstance();
+			return null;
 		}
 
 	}

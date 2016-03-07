@@ -17,6 +17,10 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 /*
  * 音乐播放的服务组件
  * 实现功能
@@ -33,7 +37,7 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 	private MusicUpdateListener musicUpdateListener;
 	private CoCoMusicApp app;
 
-	private ExecutorService es = Executors.newSingleThreadExecutor();
+//	private ExecutorService es = Executors.newSingleThreadExecutor();
 	private boolean isPause =false;
     //切换播放列表
 	public static final int MY_MUSIC_LIST = 1;
@@ -46,7 +50,7 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 	public static final int SINGLE_PLAY = 3;
 	
 	private int play_mode = ORDER_PLAY;
-	
+
 	
 	public int getChangePlayList() {
 		return changePlayList;
@@ -61,9 +65,6 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 		return play_mode;
 		
 	}
-	
-	
-	
 	public boolean isPause(){
 		return isPause;
 	}
@@ -89,37 +90,43 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 		mPlayer.setOnCompletionListener(this);
 		mPlayer.setOnErrorListener(this);
 		mp3Infos = MediaUtils.getMp3Infos(this);
-		es.execute(updateStatusRunnable);
+//		es.execute(updateStatusRunnable);
+		
 	}
 	public void onDestroy() {
 		super.onDestroy();
-		if(es!=null&&!es.isShutdown()){
-			es.shutdown();
-			es =null;
-		}
+//		if(es!=null&&!es.isShutdown()){
+//			es.shutdown();
+//			es =null;
+//		}
 		mPlayer =null;
 		mp3Infos=null;
 		musicUpdateListener=null;
 	};
-	Runnable updateStatusRunnable = new Runnable() {
-		
-		@Override
-		public void run() {
-
-			while(true){
-				if(musicUpdateListener!=null && mPlayer!=null&&mPlayer.isPlaying()){
-					musicUpdateListener.onPublish(getCurrentProgress());
-				
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}}
-			}
-		}
-	};
+	
+	/*
+	 * 这个线程启动后，不断的更新进度，BaseActivity实现了这个接口，传入两个方法，change和publish给其他的activity用
+	 */
+//	Runnable updateStatusRunnable = new Runnable() {
+//		
+//		@Override
+//		public void run() {
+//
+//			while(true){
+//				if(musicUpdateListener!=null && mPlayer!=null&&mPlayer.isPlaying()){
+//					musicUpdateListener.onPublish(getCurrentProgress());
+//				
+//				try {
+//					Thread.sleep(500);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}}
+//			}
+//		}
+//	};
 	
 	public void play(int position){
+//		PlayActivity.imageView1_album.startAnimation(animation);
 		Mp3Info mp3Info = null;
 		if(position<0||position>=mp3Infos.size()){
 			position = 0;
@@ -130,12 +137,14 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 			  mPlayer.setDataSource(this, Uri.parse(mp3Info.getUrl()));
 			  mPlayer.prepare();
 			  mPlayer.start();
+			 
 			  currentPosition = position;
 		  } catch (IOException e) {
 			e.printStackTrace();
 		  }
 		  if(musicUpdateListener!=null){
 			  musicUpdateListener.onChange(currentPosition);
+			 
 		}
 	}
 
@@ -154,6 +163,7 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 	public void pause(){
 		if(mPlayer.isPlaying()){
 			mPlayer.pause();
+//			PlayActivity.imageView1_album.clearAnimation();
 			isPause = true;
 		}
 	}
@@ -185,9 +195,8 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 		
 	}
 	public int getCurrentProgress(){
-		if(mPlayer!=null&&mPlayer.isPlaying()){
+		if(mPlayer!=null){
 			return mPlayer.getCurrentPosition();
-			
 		}
 		return 0;
 	}
@@ -198,7 +207,7 @@ public class PlayService extends Service implements OnCompletionListener,OnError
 	public void seekTo(int msec){
 		mPlayer.seekTo(msec);
 	}
-	//更新状态的接口
+	//更新状态的接口，抽象主题
 	public interface MusicUpdateListener{
 		public void onPublish(int progress);
 		public void onChange(int position);

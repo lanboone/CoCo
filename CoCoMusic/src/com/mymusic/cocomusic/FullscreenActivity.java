@@ -23,8 +23,6 @@ public class FullscreenActivity extends Activity {
         
         //ШЅБъЬт
         Intent intent = new Intent(this,PlayService.class);
-       
-        
         startService(intent);
         handler.sendEmptyMessageDelayed(START_ACTIVITY, 3000);
     }
